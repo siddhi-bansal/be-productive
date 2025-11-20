@@ -341,7 +341,7 @@
     }
     
     async function shutdownServer() {
-      if (!confirm('Are you sure you want to shutdown the protection service?')) {
+      if (!confirm('Are you sure you want to shutdown the protection service?\n\n⚠️ IMPORTANT: After stopping, you must reset your DNS settings!\nRemove 127.0.0.1 from DNS and set to automatic or 8.8.8.8\nOtherwise websites will not load.')) {
         return;
       }
       
@@ -358,7 +358,7 @@
         
         if (response.ok) {
           messageDiv.className = 'message success';
-          messageDiv.textContent = 'Server shutting down...';
+          messageDiv.innerHTML = 'Server shutting down...<br><br><strong>⚠️ Don\'t forget to reset DNS settings!</strong><br>macOS: System Settings → Network → Wi-Fi → Details → DNS<br>Windows: Settings → Network & Internet → Edit DNS';
         } else {
           messageDiv.className = 'message error';
           messageDiv.textContent = data.error || 'Shutdown failed';
