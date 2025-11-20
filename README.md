@@ -126,7 +126,56 @@ sudo launchctl load /Library/LaunchDaemons/com.beproductive.plist
 ```
 
 ### Windows
-Create a scheduled task that runs `start-background.bat` at startup with Administrator privileges.
+
+**Step 1: Create a Shortcut to the Startup Script**
+
+1. Right-click on `start-background.bat` in your project folder
+2. Select "Create shortcut"
+3. Right-click the shortcut → "Properties"
+4. In the "Shortcut" tab, click "Advanced..."
+5. Check "Run as administrator" → Click "OK" → Click "OK" again
+
+**Step 2: Set Up Scheduled Task**
+
+1. Press `Win + R`, type `taskschd.msc`, press Enter (opens Task Scheduler)
+2. Click "Create Basic Task..." on the right panel
+3. Name: `BeProductive Blocker`
+4. Description: `Start website blocker on boot`
+5. Click "Next"
+
+6. Trigger: Select "When the computer starts" → Click "Next"
+
+7. Action: Select "Start a program" → Click "Next"
+
+8. Program/script: Click "Browse" and select your `start-background.bat` file
+   - Example: `C:\Users\YourName\be-productive\start-background.bat`
+
+9. Start in: Enter the folder path (without the filename)
+   - Example: `C:\Users\YourName\be-productive`
+
+10. Click "Next" → Check "Open the Properties dialog..." → Click "Finish"
+
+**Step 3: Configure for Administrator Privileges**
+
+In the Properties dialog that opens:
+
+1. Check "Run with highest privileges"
+2. Under "Configure for:", select your Windows version (e.g., Windows 10/11)
+3. Click "OK"
+4. Enter your administrator password if prompted
+
+**Done!** The service will now start automatically when Windows boots.
+
+**To Test:**
+- Restart your computer
+- After login, wait 30 seconds
+- Open Command Prompt and run: `npm run status`
+- Should say "Service is running"
+
+**To Remove Auto-Start:**
+1. Open Task Scheduler (`Win + R` → `taskschd.msc`)
+2. Find "BeProductive Blocker" in the task list
+3. Right-click → Delete
 
 ---
 
