@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Be Productive - Activity Monitor</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+    
+    h1 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 28px;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    input {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    button {
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .activity-view {
+      display: none;
+    }
+    
+    .activity-card {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+    
+    .activity-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .activity-value {
+      font-size: 18px;
+      color: #333;
+      word-break: break-all;
+      margin-bottom: 15px;
+    }
+    
+    .activity-value.empty {
+      color: #999;
+      font-style: italic;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4caf50;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .timestamp {
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .error {
+      color: #f44336;
+      background: #ffebee;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .logout-btn {
+      background: #dc3545;
+      margin-top: 20px;
+    }
+    
+    .status-blocked {
+      color: #f44336 !important;
+      font-weight: 600;
+    }
+    
+    .status-allowed {
+      color: #4caf50 !important;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>👁️ Activity Monitor</h1>
+    <p class="subtitle">Real-time view of current activity</p>
+    
+    <!-- Authentication Form -->
+    <div id="authForm" class="auth-form">
+      <input 
+        type="password" 
+        id="parentCode" 
+        placeholder="Enter parent code (6 digits)"
+        maxlength="6"
+        pattern="\d{6}"
+      >
+      <button onclick="authenticate()">View Activity</button>
+      <div id="authError" class="error" style="display: none;"></div>
+    </div>
+    
+    <!-- Activity View -->
+    <div id="activityView" class="activity-view">
+      <div class="activity-card">
+        <div class="activity-label">
+          <span class="status-indicator"></span>
+          Current Application
+        </div>
+        <div id="activeWindow" class="activity-value empty">No activity detected</div>
+        
+        <div id="browserUrlSection" style="display: none;">
+          <div class="activity-label">Browser URL</div>
+          <div id="browserUrl" class="activity-value empty">—</div>
+          
+          <div class="activity-label">Status</div>
+          <div id="blockStatus" class="activity-value empty">—</div>
+        </div>
+      </div>
+      
+      <div class="timestamp" id="timestamp">—</div>
+      
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  
+  <script>
+    let parentCode = null;
+    let updateInterval = null;
+    
+    function authenticate() {
+      const code = document.getElementById('parentCode').value;
+      const errorDiv = document.getElementById('authError');
+      
+      if (code.length !== 6) {
+        errorDiv.textContent = 'Parent code must be 6 digits';
+        errorDiv.style.display = 'block';
+        return;
+      }
+      
+      // Test authentication with activity endpoint
+      fetch('/api/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parentCode: code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error && data.error.includes('parent code')) {
+          errorDiv.textContent = 'Incorrect parent code';
+          errorDiv.style.display = 'block';
+        } else {
+          // Success
+          parentCode = code;
+          document.getElementById('authForm').style.display = 'none';
+          document.getElementById('activityView').style.display = 'block';
+          startMonitoring();
+        }
+      })
+      .catch(err => {
+        errorDiv.textContent = 'Connection error';
+        errorDiv.style.display = 'block';
+      });
+    }
+    
+    function startMonitoring() {
+      updateActivity(); // Initial update
+      updateInterval = setInterval(updateActivity, 2000); // Update every 2 seconds
+    }
+    
+    function updateActivity() {
+      fetch('/api/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parentCode })
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Update active window
+        const windowEl = document.getElementById('activeWindow');
+        if (data.activeWindow) {
+          let appName = data.activeWindow;
+          
+          // Translate Electron to VS Code
+          if (appName === 'Electron') {
+            appName = 'Visual Studio Code';
+          }
+          
+          windowEl.textContent = appName;
+          windowEl.classList.remove('empty');
+        } else {
+          windowEl.textContent = 'No activity detected';
+          windowEl.classList.add('empty');
+        }
+        
+        // Update browser URL and status
+        const urlSection = document.getElementById('browserUrlSection');
+        const urlEl = document.getElementById('browserUrl');
+        const statusEl = document.getElementById('blockStatus');
+        
+        if (data.browserUrl) {
+          urlEl.textContent = data.browserUrl;
+          urlEl.classList.remove('empty');
+          urlSection.style.display = 'block';
+          
+          // Update block status
+          if (data.isBlocked) {
+            statusEl.textContent = '🚫 BLOCKED';
+            statusEl.classList.remove('empty', 'status-allowed');
+            statusEl.classList.add('status-blocked');
+          } else {
+            statusEl.textContent = '✅ ALLOWED';
+            statusEl.classList.remove('empty', 'status-blocked');
+            statusEl.classList.add('status-allowed');
+          }
+        } else {
+          urlSection.style.display = 'none';
+        }
+        
+        // Update timestamp
+        const timestampEl = document.getElementById('timestamp');
+        if (data.timestamp) {
+          const date = new Date(data.timestamp);
+          timestampEl.textContent = `Last updated: ${date.toLocaleTimeString()}`;
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch activity:', err);
+      });
+    }
+    
+    function logout() {
+      clearInterval(updateInterval);
+      parentCode = null;
+      document.getElementById('authForm').style.display = 'flex';
+      document.getElementById('activityView').style.display = 'none';
+      document.getElementById('parentCode').value = '';
+      document.getElementById('authError').style.display = 'none';
+    }
+    
+    // Allow Enter key to submit
+    document.getElementById('parentCode').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        authenticate();
+      }
+    });
+  </script>
+</body>
+</html>

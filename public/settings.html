@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Be Productive - Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin: 0 0 10px 0;
+    }
+    .subtitle {
+      color: #666;
+      margin: 0;
+    }
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .section h2 {
+      margin-top: 0;
+      color: #333;
+      font-size: 20px;
+    }
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .auth-box {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 400px;
+      width: 90%;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      padding: 12px 24px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .btn-danger {
+      background: #e74c3c;
+    }
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+    .btn-secondary {
+      background: #95a5a6;
+    }
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+    .whitelist-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .whitelist-domain {
+      font-family: 'Courier New', monospace;
+      color: #333;
+      font-weight: 600;
+    }
+    .message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    .temp-access {
+      background: #fff3cd;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border: 1px solid #ffeaa7;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-box">
+      <h2 style="margin-top: 0;">Enter Parent Code</h2>
+      <input 
+        type="password" 
+        id="authCode" 
+        maxlength="6" 
+        pattern="[0-9]{6}"
+        placeholder="Enter 6-digit code"
+        autofocus
+      >
+      <button onclick="authenticate()" style="width: 100%;">Access Settings</button>
+      <div id="authMessage"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>⚙️ Be Productive Settings</h1>
+      <p class="subtitle">Manage website blocking and parental controls</p>
+    </div>
+
+    <div class="section">
+      <h2>📋 Whitelist</h2>
+      <p style="color: #666; font-size: 14px;">These domains will never be blocked:</p>
+      <div id="whitelistContainer">
+        <p style="color: #999;">Loading...</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>⏰ Temporary Access</h2>
+      <p style="color: #666; font-size: 14px;">Domains with temporary unlock:</p>
+      <div id="tempAccessContainer">
+        <p style="color: #999;">Loading...</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🔑 OpenAI API Key</h2>
+      <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+        Update your OpenAI API key for AI-powered website classification.
+      </p>
+      <input 
+        type="password" 
+        id="newApiKey" 
+        placeholder="sk-..."
+      >
+      <button onclick="updateApiKey()">Update API Key</button>
+      <div id="apiMessage"></div>
+    </div>
+
+    <div class="section">
+      <h2>🔴 Danger Zone</h2>
+      <button class="btn-danger" onclick="shutdownServer()">
+        Shutdown Protection Service
+      </button>
+      <div id="shutdownMessage"></div>
+    </div>
+  </div>
+
+  <script>
+    let parentCode = null;
+    
+    async function authenticate() {
+      const code = document.getElementById('authCode').value;
+      const messageDiv = document.getElementById('authMessage');
+      
+      if (!code || code.length !== 6) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = 'Please enter a 6-digit code';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentCode: code })
+        });
+        
+        if (response.ok) {
+          parentCode = code;
+          document.getElementById('authOverlay').classList.add('hidden');
+          loadSettings();
+        } else {
+          messageDiv.className = 'message error';
+          messageDiv.textContent = 'Incorrect parent code';
+          document.getElementById('authCode').value = '';
+        }
+      } catch (error) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    async function loadSettings() {
+      try {
+        const response = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentCode })
+        });
+        
+        const data = await response.json();
+        
+        // Display whitelist
+        const whitelistContainer = document.getElementById('whitelistContainer');
+        if (data.whitelist && data.whitelist.length > 0) {
+          whitelistContainer.innerHTML = data.whitelist.map(domain => `
+            <div class="whitelist-item">
+              <span class="whitelist-domain">${domain}</span>
+              <button class="btn-secondary" onclick="removeFromWhitelist('${domain}')">Remove</button>
+            </div>
+          `).join('');
+        } else {
+          whitelistContainer.innerHTML = '<p style="color: #999;">No whitelisted domains</p>';
+        }
+        
+        // Display temporary access
+        const tempAccessContainer = document.getElementById('tempAccessContainer');
+        const tempAccess = data.temporaryAccess || {};
+        const tempDomains = Object.keys(tempAccess);
+        
+        if (tempDomains.length > 0) {
+          tempAccessContainer.innerHTML = tempDomains.map(domain => {
+            const expiryTime = new Date(tempAccess[domain]);
+            const remaining = Math.ceil((expiryTime - Date.now()) / 60000);
+            return `
+              <div class="temp-access">
+                <strong>${domain}</strong><br>
+                Expires in ${remaining} minutes (${expiryTime.toLocaleTimeString()})
+              </div>
+            `;
+          }).join('');
+        } else {
+          tempAccessContainer.innerHTML = '<p style="color: #999;">No temporary access granted</p>';
+        }
+        
+        // Show API key status
+        const apiStatus = data.hasApiKey ? '✓ API key configured' : '✗ No API key';
+        document.getElementById('apiMessage').className = `message ${data.hasApiKey ? 'success' : 'info'}`;
+        document.getElementById('apiMessage').textContent = apiStatus;
+        
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+    
+    async function removeFromWhitelist(domain) {
+      try {
+        const response = await fetch('/api/whitelist/remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentCode, domain })
+        });
+        
+        if (response.ok) {
+          loadSettings(); // Reload
+        }
+      } catch (error) {
+        console.error('Error removing domain:', error);
+      }
+    }
+    
+    async function updateApiKey() {
+      const apiKey = document.getElementById('newApiKey').value;
+      const messageDiv = document.getElementById('apiMessage');
+      
+      try {
+        const response = await fetch('/api/update-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentCode, apiKey: apiKey || null })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          messageDiv.className = 'message success';
+          messageDiv.textContent = 'API key updated successfully';
+          document.getElementById('newApiKey').value = '';
+        } else {
+          messageDiv.className = 'message error';
+          messageDiv.textContent = data.error || 'Failed to update API key';
+        }
+      } catch (error) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    async function shutdownServer() {
+      if (!confirm('Are you sure you want to shutdown the protection service?')) {
+        return;
+      }
+      
+      const messageDiv = document.getElementById('shutdownMessage');
+      
+      try {
+        const response = await fetch('/api/shutdown', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentCode })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          messageDiv.className = 'message success';
+          messageDiv.textContent = 'Server shutting down...';
+        } else {
+          messageDiv.className = 'message error';
+          messageDiv.textContent = data.error || 'Shutdown failed';
+        }
+      } catch (error) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = 'Error: ' + error.message;
+      }
+    }
+    
+    // Allow Enter key for authentication
+    document.getElementById('authCode').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        authenticate();
+      }
+    });
+  </script>
+</body>
+</html>

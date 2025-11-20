@@ -1,0 +1,18 @@
+node_modules/
+
+# Generated files
+config.json
+domain-cache.json
+current-activity.json
+
+# Logs
+*.log
+*.pid
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

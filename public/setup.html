@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Be Productive - Setup</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+      font-size: 28px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+      margin-bottom: 20px;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .message {
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .note {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔒 Be Productive Setup</h1>
+    <p class="subtitle">Set up your parent code to control website blocking</p>
+    
+    <form id="setupForm">
+      <label for="parentCode">Parent Code (6 digits)</label>
+      <input 
+        type="password" 
+        id="parentCode" 
+        name="parentCode" 
+        maxlength="6" 
+        pattern="[0-9]{6}"
+        placeholder="Enter 6-digit code"
+        required
+      >
+      
+      <button type="submit">Set Up Protection</button>
+    </form>
+    
+    <div id="message"></div>
+  </div>
+
+  <script>
+    document.getElementById('setupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const parentCode = document.getElementById('parentCode').value;
+      const messageDiv = document.getElementById('message');
+      
+      if (parentCode.length !== 6 || !/^\d+$/.test(parentCode)) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = 'Parent code must be exactly 6 digits';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ parentCode })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          messageDiv.className = 'message success';
+          messageDiv.textContent = 'Setup complete! Redirecting to settings...';
+          setTimeout(() => {
+            window.location.href = '/settings.html';
+          }, 2000);
+        } else {
+          messageDiv.className = 'message error';
+          messageDiv.textContent = data.error || 'Setup failed';
+        }
+      } catch (error) {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = 'Error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
