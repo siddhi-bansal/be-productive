@@ -72,6 +72,22 @@ Visit `http://localhost:8888/monitor.html` (requires parent code) to:
 - Check if current site is blocked or allowed
 - Access from phone on same network
 
+**Accessing from Another Device (Phone/Tablet):**
+
+1. Find the computer's IP address:
+   - **macOS**: `System Settings → Network → Wi-Fi → Details → TCP/IP` (look for "IP Address")
+   - **macOS (Terminal)**: `ipconfig getifaddr en0`
+   - **Windows**: `Settings → Network & Internet → Wi-Fi → Properties` (look for "IPv4 address")
+   - **Windows (Command Prompt)**: `ipconfig` (look for "IPv4 Address")
+
+2. On your phone/tablet, open browser and visit:
+   - `http://<computer-ip>:8888/monitor.html`
+   - Example: `http://192.168.1.100:8888/monitor.html`
+
+3. Enter parent code to view real-time activity
+
+**Note**: Both devices must be on the same Wi-Fi network.
+
 ### Commands
 ```bash
 npm run logs            # View logs
@@ -150,6 +166,20 @@ be-productive/
 ---
 
 ## 🐛 Troubleshooting
+
+**⚠️ IMPORTANT: After Stopping Service**
+When you stop the service, you **must** change DNS settings back to automatic or a public DNS (like `8.8.8.8`) - otherwise websites won't load!
+
+**macOS:**
+- System Settings → Network → Wi-Fi → Details → DNS
+- Remove `127.0.0.1` or click `-` button
+- Add `8.8.8.8` or leave empty for automatic
+
+**Windows:**
+- Settings → Network & Internet → Your Connection → Edit DNS
+- Switch to "Automatic (DHCP)" or set to `8.8.8.8`
+
+---
 
 **Sites not blocking:**
 - Check DNS is set to `127.0.0.1`

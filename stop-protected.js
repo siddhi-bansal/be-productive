@@ -42,6 +42,9 @@ if (!config || !config.parentCodeHash) {
         execSync('sudo pkill -f "node server-dns.js"', { stdio: 'inherit' });
         execSync('pkill -f "node monitor.js"', { stdio: 'inherit' });
         console.log('✅ Service stopped');
+        console.log('\n⚠️  IMPORTANT: You must reset your DNS settings!');
+        console.log('Remove 127.0.0.1 from DNS and set to automatic or 8.8.8.8');
+        console.log('Otherwise websites will not load.\n');
       } catch (e) {
         console.error('❌ Failed to stop service');
       }
@@ -56,6 +59,11 @@ if (!config || !config.parentCodeHash) {
         execSync('sudo pkill -f "node server-dns.js"', { stdio: 'inherit' });
         execSync('pkill -f "node monitor.js"', { stdio: 'inherit' });
         console.log('\n✅ Service stopped successfully');
+        console.log('\n⚠️  IMPORTANT: You must reset your DNS settings!');
+        console.log('Remove 127.0.0.1 from DNS and set to automatic or 8.8.8.8');
+        console.log('Otherwise websites will not load.\n');
+        console.log('macOS: System Settings → Network → Wi-Fi → Details → DNS');
+        console.log('Windows: Settings → Network & Internet → Edit DNS\n');
       } catch (e) {
         console.error('❌ Failed to stop service:', e.message);
       }
