@@ -145,6 +145,43 @@
     .hidden {
       display: none;
     }
+    .guide-step {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+    }
+    .guide-step h3 {
+      margin: 0 0 10px 0;
+      color: #333;
+      font-size: 16px;
+    }
+    .guide-step p {
+      margin: 8px 0;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .command-box {
+      background: #2d3748;
+      color: #48bb78;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    .note {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 13px;
+      color: #856404;
+    }
   </style>
 </head>
 <body>
@@ -179,25 +216,84 @@
     </div>
 
     <div class="section">
+      <h2>📖 Quick Command Guide</h2>
+      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+        Common tasks you can do from Terminal (macOS/Linux) or Command Prompt (Windows):
+      </p>
+
+      <div class="guide-step">
+        <h3>✅ Check if Service is Running</h3>
+        <p>This tells you if the website blocker is currently active.</p>
+        <div class="command-box">npm run status</div>
+        <p><strong>What you'll see:</strong> "Service is running" or "Service is not running"</p>
+      </div>
+
+      <div class="guide-step">
+        <h3>📋 View Activity Logs</h3>
+        <p>See what websites have been blocked and when.</p>
+        <div class="command-box">npm run logs</div>
+        <p><strong>What you'll see:</strong> List of blocked sites and access attempts</p>
+      </div>
+
+      <div class="guide-step">
+        <h3>🔄 Restart the Service</h3>
+        <p>If something isn't working, restart to fix it. You'll need your parent code.</p>
+        <div class="command-box">npm run restart</div>
+        <p><strong>What happens:</strong> Stops and starts the blocker. Asks for your 6-digit parent code.</p>
+      </div>
+
+      <div class="guide-step">
+        <h3>🛑 Stop the Service</h3>
+        <p>Completely turn off the website blocker. You'll need your parent code.</p>
+        <div class="command-box">npm run stop</div>
+        <div class="note">
+          ⚠️ <strong>Important:</strong> After stopping, you MUST reset your DNS settings or websites won't load!
+          <br>• <strong>macOS:</strong> System Settings → Network → Wi-Fi → Details → DNS → Remove 127.0.0.1
+          <br>• <strong>Windows:</strong> Settings → Network & Internet → Edit DNS → Set to Automatic
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <h3>🚀 Start the Service</h3>
+        <p>Turn on the website blocker after stopping it.</p>
+        <div class="command-box">
+          # macOS/Linux<br>
+          sudo ./start-background.sh<br>
+          <br>
+          # Windows (Run Command Prompt as Administrator)<br>
+          start-background.bat
+        </div>
+        <div class="note">
+          💡 <strong>Remember:</strong> After starting, you need to set DNS to 127.0.0.1 in your network settings for blocking to work.
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <h3>📱 Monitor from Your Phone</h3>
+        <p>See what your child is doing in real-time from another device.</p>
+        <p><strong>Step 1:</strong> Find your computer's IP address</p>
+        <div class="command-box">
+          # macOS<br>
+          ipconfig getifaddr en0<br>
+          <br>
+          # Windows<br>
+          ipconfig
+        </div>
+        <p><strong>Step 2:</strong> On your phone, open browser and visit:</p>
+        <div class="command-box">http://YOUR-IP-ADDRESS:8888/monitor.html</div>
+        <p><strong>Example:</strong> If your IP is 192.168.1.100, visit <code>http://192.168.1.100:8888/monitor.html</code></p>
+        <div class="note">
+          💡 Both devices must be on the same Wi-Fi network.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
       <h2>⏰ Temporary Access</h2>
       <p style="color: #666; font-size: 14px;">Domains with temporary unlock:</p>
       <div id="tempAccessContainer">
         <p style="color: #999;">Loading...</p>
       </div>
-    </div>
-
-    <div class="section">
-      <h2>🔑 OpenAI API Key</h2>
-      <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
-        Update your OpenAI API key for AI-powered website classification.
-      </p>
-      <input 
-        type="password" 
-        id="newApiKey" 
-        placeholder="sk-..."
-      >
-      <button onclick="updateApiKey()">Update API Key</button>
-      <div id="apiMessage"></div>
     </div>
 
     <div class="section">
@@ -287,11 +383,6 @@
           tempAccessContainer.innerHTML = '<p style="color: #999;">No temporary access granted</p>';
         }
         
-        // Show API key status
-        const apiStatus = data.hasApiKey ? '✓ API key configured' : '✗ No API key';
-        document.getElementById('apiMessage').className = `message ${data.hasApiKey ? 'success' : 'info'}`;
-        document.getElementById('apiMessage').textContent = apiStatus;
-        
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -310,33 +401,6 @@
         }
       } catch (error) {
         console.error('Error removing domain:', error);
-      }
-    }
-    
-    async function updateApiKey() {
-      const apiKey = document.getElementById('newApiKey').value;
-      const messageDiv = document.getElementById('apiMessage');
-      
-      try {
-        const response = await fetch('/api/update-key', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ parentCode, apiKey: apiKey || null })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-          messageDiv.className = 'message success';
-          messageDiv.textContent = 'API key updated successfully';
-          document.getElementById('newApiKey').value = '';
-        } else {
-          messageDiv.className = 'message error';
-          messageDiv.textContent = data.error || 'Failed to update API key';
-        }
-      } catch (error) {
-        messageDiv.className = 'message error';
-        messageDiv.textContent = 'Error: ' + error.message;
       }
     }
     
